@@ -1,0 +1,10 @@
+AutoPagerize Firefox Extension with JetpackSDK
+
+# Require
+ jetpack-sdk 0.8
+
+# Build
+ cfx xpi
+
+# Install
+ https://relucks-org.appspot.com/autopagerize/autopagerize.xpi
