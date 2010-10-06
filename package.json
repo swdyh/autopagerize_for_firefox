@@ -1,0 +1,12 @@
+{
+    "id": "jid0-tKjnEA5X3eBoP5HnqjBYQ4U3AcM",
+    "name": "autopagerize",
+    "fullName": "AutoPagerize",
+    "version": "0.5.1",
+    "dependencies": [
+        "jetpack-core"
+    ], 
+    "description": "A browser Extension for auto loading paginated web pages",
+    "url": "http://autopagerize.net/",
+    "author": "swdyh (http://relucks.org/)"
+}
