@@ -1,3 +1,5 @@
+require 'rubygems'
+require 'json'
 require 'rake/clean'
 
 CLEAN.include ['*.xpi', '*.rdf']
@@ -15,7 +17,9 @@ task :dep => :xpi do
 end
 
 task :xpi => [:clean, :_xpi] do
+  v = JSON.parse(IO.read('package.json'))['version']
   inject_meta
+  sh "cp autopagerize.xpi packages_/autopagerize_#{v}.xpi"
 end
 
 def inject_meta
