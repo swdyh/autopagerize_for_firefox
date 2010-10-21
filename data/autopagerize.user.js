@@ -11,7 +11,7 @@
 // ==/UserScript==
 //
 // auther:  swdyh http://d.hatena.ne.jp/swdyh/
-// version: 0.0.50 2010-06-18T19:33:24+09:00
+// version: 0.0.54
 //
 // this script based on
 // GoogleAutoPager(http://la.ma.la/blog/diary_200506231749.htm) and
@@ -21,18 +21,6 @@
 // Released under the GPL license
 // http://www.gnu.org/copyleft/gpl.html
 //
-
-/*
-if (isChromeExtension() || isSafariExtension()) {
-    gmCompatible()
-}
-else {
-    var ep = getPref('exclude_patterns')
-    if (ep && isExclude(ep)) {
-        return
-    }
-}
-*/
 
 if (isGreasemonkey()) {
     var ep = getPref('exclude_patterns')
@@ -46,13 +34,12 @@ else {
 }
 
 var URL = 'http://autopagerize.net/'
-var VERSION = '0.0.50'
+var VERSION = '0.0.54'
 var DEBUG = false
 var AUTO_START = true
 var CACHE_EXPIRE = 24 * 60 * 60 * 1000
 var BASE_REMAIN_HEIGHT = 400
 var FORCE_TARGET_WINDOW = getPref('force_target_window', true)
-var USE_COUNTER = true
 var XHR_TIMEOUT = 30 * 1000
 var SITEINFO_IMPORT_URLS = [
     'http://wedata.net/databases/AutoPagerize/items.json',
@@ -309,15 +296,17 @@ AutoPager.prototype.request = function() {
     if (!this.requestURL || this.lastRequestURL == this.requestURL) {
         return
     }
-    if (!this.canHandleCrossDomainRequest()) {
-        return
-    }
     this.lastRequestURL = this.requestURL
     var self = this
     var mime = 'text/html; charset=' + document.characterSet
     var headers = {}
+
     if (isSameDomain(this.requestURL)) {
         headers.Cookie = document.cookie
+    }
+    else {
+        this.error()
+        return
     }
     var opt = {
         method: 'get',
@@ -337,7 +326,20 @@ AutoPager.prototype.request = function() {
     }
     else {
         this.showLoading(true)
-        GM_xmlhttpRequest(opt)
+        var req = new XMLHttpRequest()
+        req.open('GET', opt.url, true)
+        req.overrideMimeType(opt.overrideMimeType)
+        req.onreadystatechange = function (aEvt) {
+            if (req.readyState == 4) {
+                if (req.status == 200) {
+                    opt.onload(req)
+                }
+                else {
+                    opt.onerror()
+                }
+            }
+        }
+        req.send(null)
     }
 }
 
@@ -357,11 +359,6 @@ AutoPager.prototype.showLoading = function(sw) {
 }
 
 AutoPager.prototype.requestLoad = function(res) {
-
-    if (!this.canHandleCrossDomainRequest()) {
-        return
-    }
-
     AutoPager.responseFilters.forEach(function(i) {
         i(res, this.requestURL)
     }, this)
@@ -494,19 +491,6 @@ AutoPager.prototype.getNextURL = function(xpath, doc, url) {
     }
 }
 
-AutoPager.prototype.canHandleCrossDomainRequest = function() {
-    if (!isGreasemonkey()) {
-        return true
-    }
-    if (!supportsFinalUrl()) {
-        if (!isSameDomain(this.requestURL)) {
-            this.error()
-            return false
-        }
-    }
-    return true
-}
-
 AutoPager.prototype.terminate = function() {
     window.removeEventListener('scroll', this.scroll, false)
     this.updateIcon('terminated')
@@ -527,11 +511,14 @@ AutoPager.prototype.error = function() {
     window.removeEventListener('scroll', this.scroll, false)
     if (isSafariExtension() || isChromeExtension()) {
         var mf = this.messageFrame
-        mf.src = settings['extension_path'] + 'error.html'
-        mf.style = 'block'
+        var u = settings['extension_path'] ?
+            settings['extension_path'] + 'error.html' :
+            'http://autopagerize.net/files/error.html'
+        mf.src = u
+        mf.style.display = 'block'
         setTimeout(function() {
             mf.parentNode.removeChild(mf)
-        }, 5000)
+        }, 3000)
     }
 }
 
@@ -539,149 +526,6 @@ AutoPager.documentFilters = []
 AutoPager.requestFilters = []
 AutoPager.responseFilters = []
 AutoPager.filters = []
-
-function Counter() {}
-Counter.DATA_KEY = 'counter_data'
-
-Counter.get = function() {
-    return eval(GM_getValue(Counter.DATA_KEY)) || {}
-}
-
-Counter.set = function(val) {
-    return GM_setValue(Counter.DATA_KEY, uneval(val))
-}
-
-Counter.up = function() {
-    var date = new Date()
-    var date_y = date.getFullYear()
-    var date_m = date.getMonth() + 1
-    var date_d = date.getDate()
-    var counter_data = Counter.get()
-    counter_data[date_y] = counter_data[date_y] || {}
-    counter_data[date_y][date_m] = counter_data[date_y][date_m] || {}
-    counter_data[date_y][date_m][date_d] =
-        (counter_data[date_y][date_m][date_d] || 0) + 1
-    Counter.set(counter_data)
-    return counter_data[date_y][date_m][date_d]
-}
-
-Counter.reset = function() {
-    return Counter.set({})
-}
-
-Counter.total = function() {
-    var total = 0
-    var counter_data = Counter.get()
-    for (var year in counter_data) {
-        for (var month in counter_data[year]) {
-            for (var date in counter_data[year][month]) {
-                total += counter_data[year][month][date]
-            }
-        }
-    }
-    return total
-}
-
-Counter.view = function() {
-    var div = Counter.layer()
-    var couter_data = Counter.get()
-    var comp = function(a, b) { return b - a }
-    Counter.each(couter_data,function(year, year_data) {
-        Counter.each(year_data, function(month, month_data) {
-            var img = document.createElement('img')
-            img.src = Counter.chart(year, month, month_data)
-            div.appendChild(img)
-        }, comp)
-    }, comp)
-    window.scrollTo(0, 0)
-}
-
-Counter.layer = function() {
-    var id = 'autopagerize_count_chart'
-    var e = document.getElementById(id)
-    if (e) {
-        e.parentNode.removeChild(e)
-    }
-    var div = document.createElement('div')
-    div.id = id
-    div.style.position = 'absolute'
-    div.style.top = '0px'
-    div.style.left = '0px'
-    div.style.width = '100%'
-    div.style.border = '1px solid #ccc'
-    div.style.backgroundColor = '#fff'
-    div.style.zIndex = '100'
-    document.body.appendChild(div)
-    var h1 = document.createElement('h1')
-    h1.appendChild(document.createTextNode('AutoPagerize Count Chart: ' + Counter.total()))
-    div.appendChild(h1)
-    return div
-}
-
-Counter.each = function(obj, func, comp) {
-    var ks = []
-    for (var k in obj) {
-        ks.push(k)
-    }
-    if (comp) {
-        ks.sort(comp)
-    }
-    for (var i = 0; i < ks.length; i++) {
-        func(ks[i], obj[ks[i]])
-    }
-}
-
-Counter.chart = function(year, month, month_data) {
-    var max = 0
-    var total = 0
-    var x_label = []
-    var val = []
-    for (var i = 1; i <= 31; i++) {
-        var v = month_data[i] || 0
-        x_label.push(i)
-        val.push(v)
-        max = Math.max(max, v)
-        total += v
-    }
-    var range = Counter.ceil(max)
-    var y_label = []
-    for (var i = 0; i <= 10; i++) {
-        y_label.push(range / 10 * i)
-    }
-    var xl = function(num, list) {
-        return num + ':|' + list.join('|') + '|'
-    }
-    var url = 'http://chart.apis.google.com/chart?' +
-        'cht=bvs&chs=500x250&chbh=10&chxt=x,y,x&chco=adff2f' +
-        '&chd=t:' + val.join(',') +
-        '&chxl=' + xl(0, x_label) + xl(1, y_label) + xl(2, ['  total: ' + total]) +
-        '&chds=0,' + (range * 1.1) +
-        '&chtt=' + year + '/' + month
-    return url
-}
-
-Counter.ceil = function(val) {
-    var n = 1
-    var limit = 100
-    for (var i = 0; i < limit; i++) {
-        if (n > val) {
-            return n
-        }
-        n = n * 5
-        if (n > val) {
-            return n
-        }
-        n = n * 2
-    }
-}
-
-if (USE_COUNTER) {
-    GM_registerMenuCommand('AutoPagerize - count chart', Counter.view)
-    AutoPager.documentFilters.push(function() {
-        Counter.up()
-    })
-}
-
 
 var parseInfo = function(str) {
     var lines = str.split(/\r\n|\r|\n/)
@@ -744,7 +588,12 @@ var clearCache = function() {
     GM_setValue('cacheInfo', '')
 }
 var getCache = function() {
-    return eval(GM_getValue('cacheInfo')) || {}
+    try {
+        return JSON.parse(GM_getValue('cacheInfo')) || {}
+    }
+    catch(e) {
+        return {}
+    }
 }
 var getCacheCallback = function(res, url) {
     if (res.status != 200) {
@@ -753,23 +602,10 @@ var getCacheCallback = function(res, url) {
 
     var info
     try {
-        info = eval(res.responseText).map(function(i) { return i.data })
+        info = JSON.parse(res.responseText).map(function(i) { return i.data })
     }
     catch(e) {
         info = []
-        var matched = false
-        var hdoc = createHTMLDocumentByString(res.responseText)
-        var textareas = getElementsByXPath(
-            '//*[@class="autopagerize_data"]', hdoc)
-        textareas.forEach(function(textarea) {
-            var d = parseInfo(textarea.value)
-            if (d) {
-                info.push(d)
-                if (!matched && location.href.match(d.url)) {
-                    matched = d
-                }
-            }
-        })
     }
     if (info.length > 0) {
         info = info.filter(function(i) { return ('url' in i) })
@@ -791,7 +627,7 @@ var getCacheCallback = function(res, url) {
             expire: new Date(new Date().getTime() + CACHE_EXPIRE),
             info: info
         }
-        GM_setValue('cacheInfo', cacheInfo.toSource())
+        GM_setValue('cacheInfo', JSON.stringify(cacheInfo))
         launchAutoPager(info)
     }
     else {
@@ -904,8 +740,8 @@ else if (isSafariExtension()) {
             else if (event.name === 'siteinfoChannel') {
                 if (!settings['exclude_patterns'] || !isExclude(settings['exclude_patterns'])) {
                     launchAutoPager(SITEINFO)
-                    var res = event.message
-                    launchAutoPager(res)
+                    launchAutoPager([MICROFORMAT])
+                    launchAutoPager(event.message)
                 }
             }
             else if (event.name === 'toggleRequestChannel') {
@@ -934,6 +770,7 @@ else if (isJetpack()) {
             }
             else  {
                 postMessage({ name: 'siteinfo', url: location.href })
+                launchAutoPager([MICROFORMAT])
             }
         }
     }
@@ -969,8 +806,9 @@ else {
             launchAutoPager(cacheInfo[i].info)
         }
     })
+    launchAutoPager([MICROFORMAT])
 }
-launchAutoPager([MICROFORMAT])
+
 
 // new google search sucks!
 if (location.href.match('^http://[^.]+\.google\.(?:[^.]{2,3}\.)?[^./]{2,3}/.*(&fp=)')) {
@@ -1128,7 +966,12 @@ function getScrollHeight() {
 }
 
 function isSameDomain(url) {
-    return location.host == url.split('/')[2]
+    if (url.match(/^\w+:/)) {
+        return location.host == url.split('/')[2]
+    }
+    else {
+        return true
+    }
 }
 
 function isSameBaseUrl(urlA, urlB) {
@@ -1225,7 +1068,7 @@ function isSafariExtension() {
 }
 
 function isGreasemonkey() {
-    return (typeof GM_log == 'object')
+    return (typeof GM_log == 'function')
 }
 
 function isJetpack() {
@@ -1242,23 +1085,6 @@ function gmCompatible() {
     uneval = function() {}
     fixResolvePath = function() {}
     resolvePath = function (path, base) { return path }
-
-    GM_xmlhttpRequest = function(opt) {
-        var req = new XMLHttpRequest()
-        req.open('GET', opt.url, true)
-        req.overrideMimeType(opt.overrideMimeType)
-        req.onreadystatechange = function (aEvt) {
-            if (req.readyState == 4) {
-                if (req.status == 200) {
-                    opt.onload(req)
-                }
-                else {
-                    opt.onerror()
-                }
-            }
-        }
-        req.send(null)
-    }
 
     if (isChromeExtension() || isSafariExtension()) {
         createHTMLDocumentByString = function(str) {
