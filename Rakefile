@@ -18,7 +18,7 @@ end
 
 task :xpi => [:clean, :_xpi] do
   v = JSON.parse(IO.read('package.json'))['version']
-  inject_meta
+  # inject_meta
   sh "cp autopagerize.xpi packages_/autopagerize_#{v}.xpi"
 end
 
