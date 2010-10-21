@@ -11,7 +11,7 @@
 // ==/UserScript==
 //
 // auther:  swdyh http://d.hatena.ne.jp/swdyh/
-// version: 0.0.54
+// version: 0.0.55 2010-10-22T01:39:50+09:00
 //
 // this script based on
 // GoogleAutoPager(http://la.ma.la/blog/diary_200506231749.htm) and
@@ -34,7 +34,7 @@ else {
 }
 
 var URL = 'http://autopagerize.net/'
-var VERSION = '0.0.54'
+var VERSION = '0.0.55'
 var DEBUG = false
 var AUTO_START = true
 var CACHE_EXPIRE = 24 * 60 * 60 * 1000
@@ -331,7 +331,7 @@ AutoPager.prototype.request = function() {
         req.overrideMimeType(opt.overrideMimeType)
         req.onreadystatechange = function (aEvt) {
             if (req.readyState == 4) {
-                if (req.status == 200) {
+                if (req.status == 200 && req.getAllResponseHeaders()) {
                     opt.onload(req)
                 }
                 else {
@@ -362,11 +362,6 @@ AutoPager.prototype.requestLoad = function(res) {
     AutoPager.responseFilters.forEach(function(i) {
         i(res, this.requestURL)
     }, this)
-
-    if (res.finalUrl) {
-        this.requestURL = res.finalUrl
-    }
-
     var t = res.responseText
     var htmlDoc = createHTMLDocumentByString(t)
     AutoPager.documentFilters.forEach(function(i) {
@@ -509,7 +504,7 @@ AutoPager.prototype.terminate = function() {
 AutoPager.prototype.error = function() {
     this.updateIcon('error')
     window.removeEventListener('scroll', this.scroll, false)
-    if (isSafariExtension() || isChromeExtension()) {
+    if (isSafariExtension() || isChromeExtension() || isJetpack()) {
         var mf = this.messageFrame
         var u = settings['extension_path'] ?
             settings['extension_path'] + 'error.html' :
@@ -976,10 +971,6 @@ function isSameDomain(url) {
 
 function isSameBaseUrl(urlA, urlB) {
     return (urlA.replace(/[^/]+$/, '') == urlB.replace(/[^/]+$/, ''))
-}
-
-function supportsFinalUrl() {
-    return (typeof GM_getResourceURL != 'undefined')
 }
 
 function resolvePath(path, base) {
