@@ -2,6 +2,7 @@
 // @name           AutoPagerize
 // @namespace      http://swdyh.yu.to/
 // @description    loading next page and inserting into current page.
+// @require        https://relucks-org.appspot.com/files/html-sanitizer-minified.js
 // @include        http://*
 // @include        https://*
 // @exclude        https://mail.google.com/*
@@ -11,7 +12,7 @@
 // ==/UserScript==
 //
 // auther:  swdyh http://d.hatena.ne.jp/swdyh/
-// version: 0.0.55 2010-10-22T01:39:50+09:00
+// version: 0.0.56 2010-10-22T05:26:39+09:00
 //
 // this script based on
 // GoogleAutoPager(http://la.ma.la/blog/diary_200506231749.htm) and
@@ -34,7 +35,7 @@ else {
 }
 
 var URL = 'http://autopagerize.net/'
-var VERSION = '0.0.55'
+var VERSION = '0.0.56'
 var DEBUG = false
 var AUTO_START = true
 var CACHE_EXPIRE = 24 * 60 * 60 * 1000
@@ -362,7 +363,8 @@ AutoPager.prototype.requestLoad = function(res) {
     AutoPager.responseFilters.forEach(function(i) {
         i(res, this.requestURL)
     }, this)
-    var t = res.responseText
+    var f = function(a) { return a }
+    var t = html_sanitize(res.responseText, f, f)
     var htmlDoc = createHTMLDocumentByString(t)
     AutoPager.documentFilters.forEach(function(i) {
         i(htmlDoc, this.requestURL, this.info)
