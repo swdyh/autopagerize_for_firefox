@@ -27,6 +27,7 @@
 (function() {
 
 var extension = new Extension()
+// GM only
 if (Extension.isGreasemonkey()) {
     var ep = getPref('exclude_patterns')
     if (ep && isExclude(ep)) {
@@ -116,44 +117,29 @@ var AutoPager = function(info) {
     this.requestURL = url
     this.loadedURLs = {}
     this.loadedURLs[location.href] = true
-    var toggle = function() {self.stateToggle()}
+    var toggle = function() { self.stateToggle() }
     this.toggle = toggle
-    GM_registerMenuCommand('AutoPagerize - on/off', toggle)
     this.scroll= function() { self.onScroll() }
     window.addEventListener("scroll", this.scroll, false)
 
-    if (!Extension.isGreasemonkey()) {
-        var frame = document.createElement('iframe')
-        frame.style.display = 'none'
-        frame.style.position = 'fixed'
-        frame.style.bottom = '0px'
-        frame.style.left = '0px'
-        frame.style.height = '25px'
-        frame.style.border = '0px'
-        frame.style.opacity = '0.8'
-        frame.style.zIndex = '1000'
-        frame.width = '100%'
-        frame.scrolling = 'no'
-        this.messageFrame = frame
-        var u = settings['extension_path'] ?
-            settings['extension_path'] + 'loading.html' :
-            'http://autopagerize.net/files/loading.html'
-        this.messageFrame.src = u
-        document.body.appendChild(frame)
-        extension.addListener('toggleRequest', function(res) {
-            if (ap) {
-                ap.toggle()
-            }
-        })
-        extension.postMessage('launched', {url: location.href })
-    }
-    else {
+    if (Extension.isGreasemonkey()) {
+        // GM only
+        GM_registerMenuCommand('AutoPagerize - on/off', toggle)
         this.initIcon()
         this.initHelp()
         GM_addStyle('@media print{#autopagerize_icon, #autopagerize_help {display: none !important;}}')
         this.icon.addEventListener("mouseover", function() {
             self.viewHelp()
         }, true)
+    }
+    else {
+        this.initMessageBar()
+        extension.addListener('toggleRequest', function(res) {
+            if (ap) {
+                ap.toggle()
+            }
+        })
+        extension.postMessage('launched', {url: location.href })
     }
 
     var scrollHeight = getScrollHeight()
@@ -186,6 +172,7 @@ AutoPager.prototype.getPageElementsBottom = function() {
     catch(e) {}
 }
 
+// GM only
 AutoPager.prototype.initHelp = function() {
     var helpDiv = document.createElement('div')
     helpDiv.setAttribute('id', 'autopagerize_help')
@@ -242,8 +229,51 @@ AutoPager.prototype.initHelp = function() {
     GM_addStyle('#autopagerize_help a { color: #0f0; text-decoration: underline;}')
 }
 
+// GM only
 AutoPager.prototype.viewHelp = function() {
     this.helpLayer.style.top = '3px'
+}
+
+// GM only
+AutoPager.prototype.initIcon = function() {
+    var div = document.createElement("div")
+    div.setAttribute('id', 'autopagerize_icon')
+    with (div.style) {
+        fontSize   = '12px'
+        position   = 'fixed'
+        top        = '3px'
+        right      = '3px'
+        background = COLOR['on']
+        color      = '#fff'
+        width = '10px'
+        height = '10px'
+        zIndex = '255'
+        if (this.state != 'enable') {
+            background = COLOR['off']
+        }
+    }
+    document.body.appendChild(div)
+    this.icon = div
+}
+
+AutoPager.prototype.initMessageBar = function() {
+    var frame = document.createElement('iframe')
+    frame.style.display = 'none'
+    frame.style.position = 'fixed'
+    frame.style.bottom = '0px'
+    frame.style.left = '0px'
+    frame.style.height = '25px'
+    frame.style.border = '0px'
+    frame.style.opacity = '0.8'
+    frame.style.zIndex = '1000'
+    frame.width = '100%'
+    frame.scrolling = 'no'
+    this.messageFrame = frame
+    var u = settings['extension_path'] ?
+        settings['extension_path'] + 'loading.html' :
+        'http://autopagerize.net/files/loading.html'
+    this.messageFrame.src = u
+    document.body.appendChild(frame)
 }
 
 AutoPager.prototype.onScroll = function() {
@@ -293,7 +323,7 @@ AutoPager.prototype.request = function() {
     this.lastRequestURL = this.requestURL
     var self = this
     var mime = 'text/html; charset=' + document.characterSet
-    var headers = {}
+//    var headers = {}
 /*
     if (isSameDomain(this.requestURL)) {
         headers.Cookie = document.cookie
@@ -306,7 +336,7 @@ AutoPager.prototype.request = function() {
     var opt = {
         method: 'get',
         url: this.requestURL,
-        headers: headers,
+//        headers: headers,
         overrideMimeType: mime,
         onerror: function(res) {
             self.error()
@@ -335,6 +365,7 @@ AutoPager.prototype.request = function() {
             req.overrideMimeType(opt.overrideMimeType)
             req.onreadystatechange = function (aEvt) {
                 if (req.readyState == 4) {
+                    // Hack
                     if (req.status == 200 && req.getAllResponseHeaders()) {
                         opt.onload(req)
                     }
@@ -462,27 +493,6 @@ AutoPager.prototype.addPage = function(htmlDoc, page) {
         pe.dispatchEvent(ev)
         return pe
     })
-}
-
-AutoPager.prototype.initIcon = function() {
-    var div = document.createElement("div")
-    div.setAttribute('id', 'autopagerize_icon')
-    with (div.style) {
-        fontSize   = '12px'
-        position   = 'fixed'
-        top        = '3px'
-        right      = '3px'
-        background = COLOR['on']
-        color      = '#fff'
-        width = '10px'
-        height = '10px'
-        zIndex = '255'
-        if (this.state != 'enable') {
-            background = COLOR['off']
-        }
-    }
-    document.body.appendChild(div)
-    this.icon = div
 }
 
 AutoPager.prototype.getNextURL = function(xpath, doc, url) {
