@@ -709,7 +709,7 @@ if (Extension.isGreasemonkey()) {
     launchAutoPager(SITEINFO)
     GM_registerMenuCommand('AutoPagerize - clear cache', function() {
         GM_setValue('cacheInfo', '')
-    }
+    })
     var getCache = function() {
         try {
             return JSON.parse(GM_getValue('cacheInfo')) || {}
