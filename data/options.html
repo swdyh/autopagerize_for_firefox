@@ -1,0 +1,70 @@
+<html>
+<head>
+<style>
+body {
+  padding: 0 20px;
+  font-family: sans-serif;
+  background-color: #eee;
+  color: #444;
+}
+.desc {
+  margin: 3px 0 10px 7px;
+  font-size: 90%;
+}
+code {
+  background-color: #fffff9;
+}
+textarea {
+  background-color: #fffff9;
+  color: #444;
+}
+.icon {
+  vertical-align: bottom;
+}
+.footer {
+  position: fixed;
+  bottom: 1em;
+  font-size: 80%;
+}
+a, a:visited {
+  color: #333;
+}
+.footer a {
+  font-size: 90%;
+}
+</style>
+</head>
+<body>
+<h1><img class="icon" src="http://autopagerize.net/img/icons/icon_048.png" /> <span class="i18n">options</span></h1>
+<div>
+<form id="settings_form">
+
+<div>
+  <label for="form_dm" class="i18n">display_message_bar</label>
+  <input type="checkbox" id="form_dm" />
+</div>
+
+<br />
+
+<div><label for="form_ep" class="i18n">exclude_patterns</label></div>
+<div>
+<textarea id="form_ep" cols="60" rows="7"></textarea>
+</div>
+
+<div class="desc">
+<span class="i18n">example</span>(<span class="i18n">wildcard</span>): <code> http://www.example.com/search?*</code>
+ <br />
+<span class="i18n">example</span>(<span class="i18n">regexp</span>): <code>/[^.]+\.example\.com\//</code>
+</div>
+
+<input class="i18n" type="submit" value="save" />
+</form>
+
+</div>
+
+<div class="footer">
+AutoPagerize
+<a href="http://autopagerize.net/">http://autopagerize.net/</a>
+</div>
+</body>
+</html>
