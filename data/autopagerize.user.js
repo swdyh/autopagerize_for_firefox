@@ -581,6 +581,7 @@ var launchAutoPager = function(list) {
     }
 }
 
+// GM only
 var getCacheCallback = function(res, url) {
     if (res.status != 200) {
         return getCacheErrorCallback(url)
@@ -620,6 +621,7 @@ var getCacheCallback = function(res, url) {
         getCacheErrorCallback(url)
     }
 }
+// GM only
 var getCacheErrorCallback = function(url) {
     var expire = new Date(new Date().getTime() + CACHE_EXPIRE)
     if (cacheInfo[url]) {
