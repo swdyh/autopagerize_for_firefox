@@ -548,29 +548,6 @@ AutoPager.requestFilters = []
 AutoPager.responseFilters = []
 AutoPager.filters = []
 
-var parseInfo = function(str) {
-    var lines = str.split(/\r\n|\r|\n/)
-    var re = /(^[^:]*?):(.*)$/
-    var strip = function(str) {
-        return str.replace(/^\s*/, '').replace(/\s*$/, '')
-    }
-    var info = {}
-    for (var i = 0; i < lines.length; i++) {
-        if (lines[i].match(re)) {
-            info[RegExp.$1] = strip(RegExp.$2)
-        }
-    }
-    var isValid = function(info) {
-        var infoProp = ['url', 'nextLink', 'pageElement']
-        for (var i = 0; i < infoProp.length; i++) {
-            if (!info[infoProp[i]]) {
-                return false
-            }
-        }
-        return true
-    }
-    return isValid(info) ? info : null
-}
 var launchAutoPager = function(list) {
     if (list.length == 0) {
         return
