@@ -326,7 +326,7 @@ AutoPager.prototype.request = function() {
             loadWithIframe(opt.url, function(doc, url) {
                 self.load(doc, url)
             }, function(err) {
-                // console.log('loadWithIframe:', err)
+                self.error()
             })
         }
         else if (LOAD_TYPE == 'xhr') {
@@ -528,7 +528,9 @@ AutoPager.prototype.error = function() {
         mf.src = u
         mf.style.display = 'block'
         setTimeout(function() {
-            mf.parentNode.removeChild(mf)
+            if (mf) {
+                mf.parentNode.removeChild(mf)
+            }
         }, 3000)
     }
 }
@@ -1063,13 +1065,18 @@ function loadWithIframe(url, callback, errback) {
     iframe.src = url
     document.body.appendChild(iframe)
     var contentload = function() {
-        if (!iframe.contentWindow.location.href) {
+        try {
+            if (!iframe.contentWindow.location.href) {
+                errback()
+            }
+            else {
+                callback(iframe.contentDocument, iframe.contentWindow.location.href)
+            }
+            iframe.parentNode.removeChild(iframe)
+        }
+        catch(e) {
             errback()
         }
-        else {
-            callback(iframe.contentDocument, iframe.contentWindow.location.href)
-        }
-        iframe.parentNode.removeChild(iframe)
     }
     iframe.onload = contentload
     iframe.onerror = errback
