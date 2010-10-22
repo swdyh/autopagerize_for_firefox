@@ -375,7 +375,6 @@ AutoPager.prototype.requestLoad = function(res) {
 
 AutoPager.prototype.load = function(htmlDoc, url) {
     if (!isSameDomain(url)) {
-        // console.log('load:xdomain', location.href, url)
         this.error()
         return
     }
@@ -388,7 +387,6 @@ AutoPager.prototype.load = function(htmlDoc, url) {
         var url = this.getNextURL(this.info.nextLink, htmlDoc, this.requestURL)
     }
     catch(e){
-        // log(e)
         this.error()
         return
     }
@@ -592,7 +590,6 @@ var launchAutoPager = function(list) {
             }
         }
         catch(e) {
-            // log(e)
             continue
         }
     }
@@ -870,16 +867,6 @@ function createDocumentFragmentByString(str) {
     return range.createContextualFragment(str)
 }
 
-// obsolete
-function log(message) {
-    if (typeof console == 'object') {
-        console.log(message)
-    }
-    else {
-        GM_log(message)
-    }
-}
-
 function debug() {
     if ( typeof DEBUG != 'undefined' && DEBUG ) {
         console.log.apply(console, arguments)
@@ -1004,32 +991,6 @@ function isExclude(patterns) {
     }
     return false
 }
-// obsolete
-/*
-function isFirefoxExtension() {
-    return (typeof chlorine == 'object')
-}
-
-function isChromeExtension() {
-    return (typeof chrome == 'object') &&
-        (typeof chrome.extension == 'object')
-}
-
-function isSafariExtension() {
-    return (typeof safari == 'object') &&
-        (typeof safari.extension == 'object')
-}
-
-function isGreasemonkey() {
-    return (typeof GM_log == 'function')
-}
-
-function isJetpack() {
-    // isFirefoxExtension is obsolete
-    return (!isGreasemonkey() && !isSafariExtension() &&
-            !isChromeExtension() && !isFirefoxExtension())
-}
-*/
 
 function gmCompatible() {
     GM_registerMenuCommand = function() {}
