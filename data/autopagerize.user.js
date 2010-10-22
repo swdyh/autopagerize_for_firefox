@@ -24,11 +24,12 @@
 // http://www.gnu.org/copyleft/gpl.html
 //
 
+(function() {
+
 var extension = new Extension()
 if (Extension.isGreasemonkey()) {
     var ep = getPref('exclude_patterns')
     if (ep && isExclude(ep)) {
-        // FIXME
         // return
     }
 }
@@ -360,7 +361,7 @@ AutoPager.prototype.request = function() {
             loadWithIframe(opt.url, function(doc, url) {
                 self.load(doc, url)
             }, function(err) {
-                console.log('loadWithIframe:', err)
+                // console.log('loadWithIframe:', err)
             })
         }
         else if (LOAD_TYPE == 'xhr') {
@@ -409,7 +410,7 @@ AutoPager.prototype.requestLoad = function(res) {
 
 AutoPager.prototype.load = function(htmlDoc, url) {
     if (!isSameDomain(url)) {
-        console.log('load:xdomain', location.href, url)
+        // console.log('load:xdomain', location.href, url)
         this.error()
         return
     }
@@ -1060,6 +1061,7 @@ function getScrollHeight() {
 }
 
 function isSameDomain(url) {
+    console.log('u', url)
     if (url.match(/^\w+:/)) {
         return location.host == url.split('/')[2]
     }
@@ -1197,19 +1199,22 @@ function gmCompatible() {
     return true
 }
 
-
-
 function loadWithIframe(url, callback, errback) {
     var iframe = document.createElement('iframe')
     iframe.style.display = 'none'
     iframe.src = url
     document.body.appendChild(iframe)
-    var contentload = function(e) {
-        callback(iframe.contentDocument, iframe.contentWindow.location.href)
+    var contentload = function() {
+        if (!iframe.contentWindow.location.href) {
+            errback()
+        }
+        else {
+            callback(iframe.contentDocument, iframe.contentWindow.location.href)
+        }
         iframe.parentNode.removeChild(iframe)
     }
     iframe.onload = contentload
     iframe.onerror = errback
 }
 
-
+})()
