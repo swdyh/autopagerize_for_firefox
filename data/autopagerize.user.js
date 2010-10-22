@@ -93,7 +93,7 @@ var AutoPager = function(info) {
     var self = this
     var url = this.getNextURL(info.nextLink, document, location.href)
 
-    if ( !url ) {
+    if (!url) {
         debug("getNextURL returns null.", info.nextLink)
         return
     }
@@ -351,7 +351,6 @@ AutoPager.prototype.request = function() {
     }
     else {
         this.showLoading(true)
-
         if (LOAD_TYPE == 'iframe') { // default
             loadWithIframe(opt.url, function(doc, url) {
                 self.load(doc, url)
@@ -581,17 +580,7 @@ var launchAutoPager = function(list) {
         }
     }
 }
-var clearCache = function() {
-    GM_setValue('cacheInfo', '')
-}
-var getCache = function() {
-    try {
-        return JSON.parse(GM_getValue('cacheInfo')) || {}
-    }
-    catch(e) {
-        return {}
-    }
-}
+
 var getCacheCallback = function(res, url) {
     if (res.status != 200) {
         return getCacheErrorCallback(url)
@@ -713,10 +702,20 @@ extension.addListener('updateSettings', function(res) {
     settings = res
 })
 
-
+// GM only
 if (Extension.isGreasemonkey()) {
     launchAutoPager(SITEINFO)
-    GM_registerMenuCommand('AutoPagerize - clear cache', clearCache)
+    GM_registerMenuCommand('AutoPagerize - clear cache', function() {
+        GM_setValue('cacheInfo', '')
+    }
+    var getCache = function() {
+        try {
+            return JSON.parse(GM_getValue('cacheInfo')) || {}
+        }
+        catch(e) {
+            return {}
+        }
+    }
     var cacheInfo = getCache()
     var xhrStates = {}
     SITEINFO_IMPORT_URLS.forEach(function(i) {
@@ -748,16 +747,12 @@ if (Extension.isGreasemonkey()) {
     launchAutoPager([MICROFORMAT])
 }
 
-
 // new google search sucks!
 if (location.href.match('^http://[^.]+\.google\.(?:[^.]{2,3}\.)?[^./]{2,3}/.*(&fp=)')) {
     var to = location.href.replace(/&fp=.*/, '')
     // console.log([location.href, to])
     location.href = to
 }
-
-
-
 
 // utility functions.
 function createHTMLDocumentByString(str) {
