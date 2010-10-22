@@ -121,16 +121,7 @@ var AutoPager = function(info) {
     GM_registerMenuCommand('AutoPagerize - on/off', toggle)
     this.scroll= function() { self.onScroll() }
     window.addEventListener("scroll", this.scroll, false)
-/*
-    if (isFirefoxExtension()) {
-        var div = document.createElement("div")
-        div.setAttribute('id', 'autopagerize_icon')
-        div.style.display = 'none'
-        document.body.appendChild(div)
-        this.icon = div
-    }
-    else
- */
+
     if (!Extension.isGreasemonkey()) {
         var frame = document.createElement('iframe')
         frame.style.display = 'none'
@@ -155,17 +146,6 @@ var AutoPager = function(info) {
             }
         })
         extension.postMessage('launched', {url: location.href })
-/*
-        if (isSafariExtension()) {
-            safari.self.tab.dispatchMessage('launched', {url: location.href })
-        }
-        else if (isChromeExtension()) {
-            chrome.extension.connect({name: "launched"}).postMessage()
-        }
-        if (isJetpack()) {
-            postMessage({name: 'launched', data: location.href })
-        }
-*/
     }
     else {
         this.initIcon()
@@ -301,21 +281,6 @@ AutoPager.prototype.updateIcon = function(state) {
         st = rename[st]
     }
     var color = COLOR[st]
-//    if (color) {
-/*
-        if (isFirefoxExtension()) {
-            chlorine.pageAction.update(color, location.href)
-        }
-        else
-*/
-/*
-        if (isChromeExtension()) {
-            chrome.extension.connect({name: "pageActionChannel"}).postMessage(color)
-        }
-        else if (isSafariExtension() || isJetpack()) {
-        }
-        else {
-*/
     if (color && Extension.isGreasemonkey()) {
         this.icon.style.background = color
     }
@@ -762,112 +727,6 @@ extension.addListener('updateSettings', function(res) {
     settings = res
 })
 
-/*
-if (isChromeExtension()) {
-    var port = chrome.extension.connect({name: "settingsChannel"})
-    port.postMessage()
-    port.onMessage.addListener(function(res) {
-        settings = res
-        if (res['exclude_patterns'] && isExclude(res['exclude_patterns'])) {
-            return
-        }
-        launchAutoPager(SITEINFO)
-        var port_ = chrome.extension.connect({name: "siteinfoChannel"})
-        port_.postMessage({ url: location.href })
-        port_.onMessage.addListener(function(res) {
-            launchAutoPager(res)
-            chrome.extension.onConnect.addListener(function(port) {
-                if (port.name == "toggleRequestChannel") {
-                    port.onMessage.addListener(function(msg) {
-                        if (ap) {
-                            ap.toggle()
-                        }
-                    })
-                }
-            })
-        })
-    })
-}
-else if (isSafariExtension()) {
-    var re_exclude = /^(about:|safari-extension:)/
-    if (!location.href.match(re_exclude)) {
-        safari.self.addEventListener('message', function(event) {
-            if (event.name === 'settings') {
-                settings = event.message
-                safari.self.tab.dispatchMessage('siteinfoChannel', {url: location.href })
-            }
-            else if (event.name === 'siteinfoChannel') {
-                if (!settings['exclude_patterns'] || !isExclude(settings['exclude_patterns'])) {
-                    launchAutoPager(SITEINFO)
-                    launchAutoPager([MICROFORMAT])
-                    launchAutoPager(event.message)
-                }
-            }
-            else if (event.name === 'toggleRequestChannel') {
-                if (ap) {
-                    ap.toggle()
-                }
-            }
-            else if (event.name === 'updateSettings') {
-                settings = event.message
-            }
-        }, false)
-        safari.self.tab.dispatchMessage('settings')
-    }
-}
-else if (isJetpack()) {
-    postMessage({ name: 'settings' })
-    onMessage = function(message) {
-        if (message.name == 'siteinfo') {
-            // launchAutoPager(SITEINFO)
-            launchAutoPager(message.data)
-        }
-        else if (message.name == 'settings') {
-            settings = message.data
-            if (settings['exclude_patterns'] && isExclude(settings['exclude_patterns'])) {
-                // return
-            }
-            else  {
-                postMessage({ name: 'siteinfo', url: location.href })
-                launchAutoPager([MICROFORMAT])
-            }
-        }
-    }
-}
-else {
-    launchAutoPager(SITEINFO)
-    GM_registerMenuCommand('AutoPagerize - clear cache', clearCache)
-    var cacheInfo = getCache()
-    var xhrStates = {}
-    SITEINFO_IMPORT_URLS.forEach(function(i) {
-        if (!cacheInfo[i] || cacheInfo[i].expire < new Date()) {
-            var opt = {
-                method: 'get',
-                url: i,
-                onload: function(res) {
-                    xhrStates[i] = 'loaded'
-                    getCacheCallback(res, i)
-                },
-                onerror: function(res){
-                    xhrStates[i] = 'error'
-                    getCacheErrorCallback(i)
-                },
-            }
-            xhrStates[i] = 'start'
-            GM_xmlhttpRequest(opt)
-            setTimeout(function() {
-                if (xhrStates[i] == 'start') {
-                    getCacheErrorCallback(i)
-                }
-            }, XHR_TIMEOUT)
-        }
-        else {
-            launchAutoPager(cacheInfo[i].info)
-        }
-    })
-    launchAutoPager([MICROFORMAT])
-}
-*/
 
 if (Extension.isGreasemonkey()) {
     launchAutoPager(SITEINFO)
@@ -1061,7 +920,6 @@ function getScrollHeight() {
 }
 
 function isSameDomain(url) {
-    console.log('u', url)
     if (url.match(/^\w+:/)) {
         return location.host == url.split('/')[2]
     }
