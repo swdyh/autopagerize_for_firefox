@@ -378,8 +378,6 @@ AutoPager.prototype.error = function() {
 }
 
 AutoPager.documentFilters = []
-AutoPager.requestFilters = []
-AutoPager.responseFilters = []
 AutoPager.filters = []
 
 var launchAutoPager = function(list) {
@@ -453,12 +451,6 @@ if (typeof(window.AutoPagerize) == 'undefined') {
     }
     window.AutoPagerize.addDocumentFilter = function(f) {
         AutoPager.documentFilters.push(f)
-    }
-    window.AutoPagerize.addResponseFilter = function(f) {
-        AutoPager.responseFilters.push(f)
-    }
-    window.AutoPagerize.addRequestFilter = function(f) {
-        AutoPager.requestFilters.push(f)
     }
     window.AutoPagerize.launchAutoPager = launchAutoPager
     var ev = document.createEvent('Event')
