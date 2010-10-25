@@ -130,15 +130,11 @@ var AutoPager = function(info) {
     document.addEventListener('AutoPagerizeToggleRequest', function() {
         that.toggle()
     }, false)
-    document.addEventListener('AutoPagerizeUpdateIconRequest', function() {
-        that.updateIcon()
-    }, false)
     document.addEventListener('AutoPagerizeUpdateSettingsRequest', function() {
         extension.postMessage('settings', {}, function(res) {
             settings = res
         })
     }, false)
-    that.updateIcon()
 }
 
 AutoPager.prototype.getPageElementsBottom = function() {
@@ -189,24 +185,10 @@ AutoPager.prototype.stateToggle = function() {
 
 AutoPager.prototype.enable = function() {
     this.state = 'enable'
-    this.updateIcon()
 }
 
 AutoPager.prototype.disable = function() {
     this.state = 'disable'
-    this.updateIcon()
-}
-
-AutoPager.prototype.updateIcon = function(state) {
-    var st = state || this.state
-    var rename = {'enable': 'on', 'disable': 'off' }
-    if (rename[st]) {
-        st = rename[st]
-    }
-    var color = COLOR[st]
-    if (color && Extension.isGreasemonkey()) {
-        this.icon.style.background = color
-    }
 }
 
 AutoPager.prototype.request = function() {
@@ -225,13 +207,11 @@ AutoPager.prototype.request = function() {
 
 AutoPager.prototype.showLoading = function(sw) {
     if (sw) {
-        this.updateIcon('loading')
         if (this.messageFrame && settings['display_message_bar']) {
             this.messageFrame.style.display = 'block'
         }
     }
     else {
-        this.updateIcon('enable')
         if (this.messageFrame) {
             this.messageFrame.style.display = 'none'
         }
@@ -346,7 +326,6 @@ AutoPager.prototype.getNextURL = function(xpath, doc, url) {
 
 AutoPager.prototype.terminate = function() {
     window.removeEventListener('scroll', this.scroll, false)
-    this.updateIcon('terminated')
     var self = this
     setTimeout(function() {
         if (self.icon) {
@@ -360,7 +339,6 @@ AutoPager.prototype.terminate = function() {
 }
 
 AutoPager.prototype.error = function() {
-    this.updateIcon('error')
     window.removeEventListener('scroll', this.scroll, false)
     if (this.messageFrame) {
         var mf = this.messageFrame
