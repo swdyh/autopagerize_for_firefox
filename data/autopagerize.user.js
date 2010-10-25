@@ -26,8 +26,6 @@
 
 (function() {
 
-var extension = new Extension()
-gmCompatible() // FIXME
 
 var URL = 'http://autopagerize.net/'
 var VERSION = '0.0.56'
@@ -420,7 +418,10 @@ var linkFilter = function(doc, url) {
     }
 }
 AutoPager.documentFilters.push(linkFilter)
-fixResolvePath()
+
+if (Extension.isFirefox()) {
+    fixResolvePath()
+}
 
 if (typeof(window.AutoPagerize) == 'undefined') {
     window.AutoPagerize = {}
@@ -438,6 +439,7 @@ if (typeof(window.AutoPagerize) == 'undefined') {
 
 var settings = {}
 var ap = null
+var extension = new Extension()
 extension.postMessage('settings', {}, function(res) {
     settings = res
     extension.postMessage('siteinfo', { url: location.href }, function(res) {
@@ -621,12 +623,6 @@ function strip_html_tag(str) {
     return chunks.join('')
 }
 
-// GM only
-function getPref(key, defaultValue) {
-    var value = GM_getValue(key)
-    return (typeof value == 'undefined') ? defaultValue : value
-}
-
 function wildcard2regep(str) {
     return '^' + str.replace(/([-()\[\]{}+?.$\^|,:#<!\\])/g, '\\$1').replace(/\x08/g, '\\x08').replace(/\*/g, '.*')
 }
@@ -647,17 +643,6 @@ function isExclude(patterns) {
         }
     }
     return false
-}
-
-function gmCompatible() {
-    GM_registerMenuCommand = function() {}
-    GM_setValue = function() {}
-    GM_getValue = function() {}
-    GM_addStyle = function() {}
-    uneval = function() {}
-    fixResolvePath = function() {}
-    resolvePath = function (path, base) { return path }
-    return true
 }
 
 function loadWithIframe(url, callback, errback) {
