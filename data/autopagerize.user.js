@@ -27,16 +27,7 @@
 (function() {
 
 var extension = new Extension()
-// GM only
-if (Extension.isGreasemonkey()) {
-    var ep = getPref('exclude_patterns')
-    if (ep && isExclude(ep)) {
-        // return
-    }
-}
-else {
-    gmCompatible()
-}
+gmCompatible() // FIXME
 
 var URL = 'http://autopagerize.net/'
 var VERSION = '0.0.56'
@@ -44,8 +35,7 @@ var DEBUG = false
 var AUTO_START = true
 var CACHE_EXPIRE = 24 * 60 * 60 * 1000
 var BASE_REMAIN_HEIGHT = 400
-var FORCE_TARGET_WINDOW = getPref('force_target_window', true) // GM only
-var XHR_TIMEOUT = 30 * 1000 //GM only
+var FORCE_TARGET_WINDOW = true // FIXME config
 var SITEINFO_IMPORT_URLS = [
     'http://wedata.net/databases/AutoPagerize/items.json',
 ]
@@ -121,25 +111,13 @@ var AutoPager = function(info) {
     this.scroll= function() { self.onScroll() }
     window.addEventListener("scroll", this.scroll, false)
 
-    if (Extension.isGreasemonkey()) {
-        // GM only
-        GM_registerMenuCommand('AutoPagerize - on/off', toggle)
-        this.initIcon()
-        this.initHelp()
-        GM_addStyle('@media print{#autopagerize_icon, #autopagerize_help {display: none !important;}}')
-        this.icon.addEventListener("mouseover", function() {
-            self.viewHelp()
-        }, true)
-    }
-    else {
-        this.initMessageBar()
-        extension.addListener('toggleRequest', function(res) {
-            if (ap) {
-                ap.toggle()
-            }
-        })
-        extension.postMessage('launched', {url: location.href })
-    }
+    this.initMessageBar()
+    extension.addListener('toggleRequest', function(res) {
+        if (ap) {
+            ap.toggle()
+        }
+    })
+    extension.postMessage('launched', {url: location.href })
 
     var scrollHeight = getScrollHeight()
     var bottom = getElementPosition(this.insertPoint).top ||
@@ -169,90 +147,6 @@ AutoPager.prototype.getPageElementsBottom = function() {
         return getElementBottom(elem)
     }
     catch(e) {}
-}
-
-// GM only
-AutoPager.prototype.initHelp = function() {
-    var helpDiv = document.createElement('div')
-    helpDiv.setAttribute('id', 'autopagerize_help')
-    helpDiv.setAttribute('style', 'padding:5px;position:fixed;' +
-                     'top:-200px;right:3px;font-size:10px;' +
-                     'background:#fff;color:#000;border:1px solid #ccc;' +
-                     'z-index:256;text-align:left;font-weight:normal;' +
-                     'line-height:120%;font-family:verdana;')
-
-    var toggleDiv = document.createElement('div')
-    toggleDiv.setAttribute('style', 'margin:0 0 0 50px;')
-    var a = document.createElement('a')
-    a.setAttribute('class', 'autopagerize_link')
-    a.innerHTML = 'on/off'
-    a.href = 'javascript:void(0)'
-    var self = this
-    var toggle = function() {
-        self.stateToggle()
-        helpDiv.style.top = '-200px'
-    }
-    a.addEventListener('click', toggle, false)
-    toggleDiv.appendChild(a)
-
-    var s = '<div style="width:100px; float:left;">'
-    for (var i in COLOR) {
-        s += '<div style="float:left;width:1em;height:1em;' +
-            'margin:0 3px;background-color:' + COLOR[i] + ';' +
-            '"></div><div style="margin:0 3px">' + i + '</div>'
-    }
-    s += '</div>'
-    var colorDiv = document.createElement('div')
-    colorDiv.innerHTML = s
-    helpDiv.appendChild(colorDiv)
-    helpDiv.appendChild(toggleDiv)
-
-    var versionDiv = document.createElement('div')
-    versionDiv.setAttribute('style', 'clear:both;')
-    versionDiv.innerHTML = '<a href="' + URL +
-        '">AutoPagerize</a> ver ' + VERSION
-    helpDiv.appendChild(versionDiv)
-    document.body.appendChild(helpDiv)
-
-    var proc = function(e) {
-        var c_style = document.defaultView.getComputedStyle(helpDiv, '')
-        var s = ['top', 'left', 'height', 'width'].map(function(i) {
-            return parseInt(c_style.getPropertyValue(i)) })
-        if (e.clientX < s[1] || e.clientX > (s[1] + s[3] + 11) ||
-            e.clientY < s[0] || e.clientY > (s[0] + s[2] + 11)) {
-                helpDiv.style.top = '-200px'
-        }
-    }
-    helpDiv.addEventListener('mouseout', proc, false)
-    this.helpLayer = helpDiv
-    GM_addStyle('#autopagerize_help a { color: #0f0; text-decoration: underline;}')
-}
-
-// GM only
-AutoPager.prototype.viewHelp = function() {
-    this.helpLayer.style.top = '3px'
-}
-
-// GM only
-AutoPager.prototype.initIcon = function() {
-    var div = document.createElement("div")
-    div.setAttribute('id', 'autopagerize_icon')
-    with (div.style) {
-        fontSize   = '12px'
-        position   = 'fixed'
-        top        = '3px'
-        right      = '3px'
-        background = COLOR['on']
-        color      = '#fff'
-        width = '10px'
-        height = '10px'
-        zIndex = '255'
-        if (this.state != 'enable') {
-            background = COLOR['off']
-        }
-    }
-    document.body.appendChild(div)
-    this.icon = div
 }
 
 AutoPager.prototype.initMessageBar = function() {
@@ -321,41 +215,12 @@ AutoPager.prototype.request = function() {
     }
     this.lastRequestURL = this.requestURL
     var self = this
-    var mime = 'text/html; charset=' + document.characterSet
-//    var headers = {}
-/*
-    if (isSameDomain(this.requestURL)) {
-        headers.Cookie = document.cookie
-    }
-    else {
-        this.error()
-        return
-    }
-*/
-    var opt = {
-        method: 'get',
-        url: this.requestURL,
-//        headers: headers,
-        overrideMimeType: mime,
-        onerror: function(res) {
-            self.error()
-        },
-        onload: function(res) {
-            self.requestLoad.apply(self, [res])
-        }
-    }
-    AutoPager.requestFilters.forEach(function(i) { i(opt) }, this)
-    if (opt.stop) {
-        this.requestURL = opt.url
-    }
-    else {
-        this.showLoading(true)
-        loadWithIframe(opt.url, function(doc, url) {
-            self.load(doc, url)
-        }, function(err) {
-            self.error()
-        })
-    }
+    this.showLoading(true)
+    loadWithIframe(this.requestURL, function(doc, url) {
+        self.load(doc, url)
+    }, function(err) {
+        self.error()
+    })
 }
 
 AutoPager.prototype.showLoading = function(sw) {
@@ -372,17 +237,7 @@ AutoPager.prototype.showLoading = function(sw) {
         }
     }
 }
-/*
-AutoPager.prototype.requestLoad = function(res) {
-    AutoPager.responseFilters.forEach(function(i) {
-        i(res, this.requestURL)
-    }, this)
-    var f = function(a) { return a }
-    var t = html_sanitize(res.responseText, f, f)
-    var htmlDoc = createHTMLDocumentByString(t)
-    this.load(htmlDoc, this.requestURL)
-}
-*/
+
 AutoPager.prototype.load = function(htmlDoc, url) {
     if (!isSameDomain(url)) {
         this.error()
@@ -561,63 +416,6 @@ var launchAutoPager = function(list) {
     }
 }
 
-// GM only
-var getCacheCallback = function(res, url) {
-    if (res.status != 200) {
-        return getCacheErrorCallback(url)
-    }
-
-    var info
-    try {
-        info = JSON.parse(res.responseText).map(function(i) { return i.data })
-    }
-    catch(e) {
-        info = []
-    }
-    if (info.length > 0) {
-        info = info.filter(function(i) { return ('url' in i) })
-        info.sort(function(a, b) { return (b.url.length - a.url.length) })
-
-        var r_keys = ['url', 'nextLink', 'insertBefore', 'pageElement']
-        info = info.map(function(i) {
-            var item = {}
-            r_keys.forEach(function(key) {
-                if (i[key]) {
-                    item[key] = i[key]
-                }
-            })
-            return item
-        })
-
-        cacheInfo[url] = {
-            url: url,
-            expire: new Date(new Date().getTime() + CACHE_EXPIRE),
-            info: info
-        }
-        GM_setValue('cacheInfo', JSON.stringify(cacheInfo))
-        launchAutoPager(info)
-    }
-    else {
-        getCacheErrorCallback(url)
-    }
-}
-// GM only
-var getCacheErrorCallback = function(url) {
-    var expire = new Date(new Date().getTime() + CACHE_EXPIRE)
-    if (cacheInfo[url]) {
-        cacheInfo[url].expire = expire
-        launchAutoPager(cacheInfo[url].info)
-    }
-    else {
-        cacheInfo[url] = {
-            url: url,
-            expire: expire,
-            info: []
-        }
-    }
-    GM_setValue('cacheInfo', cacheInfo.toSource())
-}
-
 var linkFilter = function(doc, url) {
     var base = getFirstElementByXPath('//base[@href]', doc)
     var baseUrl = base ? base.href : url
@@ -684,51 +482,6 @@ extension.addListener('updateSettings', function(res) {
     settings = res
 })
 
-// GM only
-if (Extension.isGreasemonkey()) {
-    launchAutoPager(SITEINFO)
-    GM_registerMenuCommand('AutoPagerize - clear cache', function() {
-        GM_setValue('cacheInfo', '')
-    })
-    var getCache = function() {
-        try {
-            return JSON.parse(GM_getValue('cacheInfo')) || {}
-        }
-        catch(e) {
-            return {}
-        }
-    }
-    var cacheInfo = getCache()
-    var xhrStates = {}
-    SITEINFO_IMPORT_URLS.forEach(function(i) {
-        if (!cacheInfo[i] || cacheInfo[i].expire < new Date()) {
-            var opt = {
-                method: 'get',
-                url: i,
-                onload: function(res) {
-                    xhrStates[i] = 'loaded'
-                    getCacheCallback(res, i)
-                },
-                onerror: function(res){
-                    xhrStates[i] = 'error'
-                    getCacheErrorCallback(i)
-                },
-            }
-            xhrStates[i] = 'start'
-            GM_xmlhttpRequest(opt)
-            setTimeout(function() {
-                if (xhrStates[i] == 'start') {
-                    getCacheErrorCallback(i)
-                }
-            }, XHR_TIMEOUT)
-        }
-        else {
-            launchAutoPager(cacheInfo[i].info)
-        }
-    })
-    launchAutoPager([MICROFORMAT])
-}
-
 // new google search sucks!
 if (location.href.match('^http://[^.]+\.google\.(?:[^.]{2,3}\.)?[^./]{2,3}/.*(&fp=)')) {
     var to = location.href.replace(/&fp=.*/, '')
@@ -736,8 +489,8 @@ if (location.href.match('^http://[^.]+\.google\.(?:[^.]{2,3}\.)?[^./]{2,3}/.*(&f
     location.href = to
 }
 
-// utility functions.
 
+// utility functions.
 function getElementsByXPath(xpath, node) {
     var nodesSnapshot = getXPathResult(xpath, node,
         XPathResult.ORDERED_NODE_SNAPSHOT_TYPE)
