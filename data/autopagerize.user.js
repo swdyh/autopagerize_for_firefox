@@ -44,9 +44,8 @@ var DEBUG = false
 var AUTO_START = true
 var CACHE_EXPIRE = 24 * 60 * 60 * 1000
 var BASE_REMAIN_HEIGHT = 400
-var FORCE_TARGET_WINDOW = getPref('force_target_window', true)
-var XHR_TIMEOUT = 30 * 1000
-var LOAD_TYPE = 'iframe' // iframe or xhr
+var FORCE_TARGET_WINDOW = getPref('force_target_window', true) // GM only
+var XHR_TIMEOUT = 30 * 1000 //GM only
 var SITEINFO_IMPORT_URLS = [
     'http://wedata.net/databases/AutoPagerize/items.json',
 ]
@@ -82,7 +81,7 @@ var MICROFORMAT = {
     pageElement:  '//*[contains(@class, "autopagerize_page_element")]',
 }
 
-if (LOAD_TYPE == 'iframe' && window != window.parent) {
+if (window != window.parent) {
     return
 }
 
@@ -351,30 +350,11 @@ AutoPager.prototype.request = function() {
     }
     else {
         this.showLoading(true)
-        if (LOAD_TYPE == 'iframe') { // default
-            loadWithIframe(opt.url, function(doc, url) {
-                self.load(doc, url)
-            }, function(err) {
-                self.error()
-            })
-        }
-        else if (LOAD_TYPE == 'xhr') {
-            var req = new XMLHttpRequest()
-            req.open('GET', opt.url, true)
-            req.overrideMimeType(opt.overrideMimeType)
-            req.onreadystatechange = function (aEvt) {
-                if (req.readyState == 4) {
-                    // Hack
-                    if (req.status == 200 && req.getAllResponseHeaders()) {
-                        opt.onload(req)
-                    }
-                    else {
-                        opt.onerror()
-                    }
-                }
-            }
-            req.send(null)
-        }
+        loadWithIframe(opt.url, function(doc, url) {
+            self.load(doc, url)
+        }, function(err) {
+            self.error()
+        })
     }
 }
 
@@ -392,7 +372,7 @@ AutoPager.prototype.showLoading = function(sw) {
         }
     }
 }
-
+/*
 AutoPager.prototype.requestLoad = function(res) {
     AutoPager.responseFilters.forEach(function(i) {
         i(res, this.requestURL)
@@ -402,7 +382,7 @@ AutoPager.prototype.requestLoad = function(res) {
     var htmlDoc = createHTMLDocumentByString(t)
     this.load(htmlDoc, this.requestURL)
 }
-
+*/
 AutoPager.prototype.load = function(htmlDoc, url) {
     if (!isSameDomain(url)) {
         this.error()
@@ -757,32 +737,6 @@ if (location.href.match('^http://[^.]+\.google\.(?:[^.]{2,3}\.)?[^./]{2,3}/.*(&f
 }
 
 // utility functions.
-function createHTMLDocumentByString(str) {
-    if (document.documentElement.nodeName != 'HTML') {
-        return new DOMParser().parseFromString(str, 'application/xhtml+xml')
-    }
-    var html = strip_html_tag(str)
-    var htmlDoc
-    try {
-        // We have to handle exceptions since Opera 9.6 throws
-        // a NOT_SUPPORTED_ERR exception for |document.cloneNode(false)|
-        // against the DOM 3 Core spec.
-        htmlDoc = document.cloneNode(false)
-        htmlDoc.appendChild(htmlDoc.importNode(document.documentElement, false))
-    }
-    catch(e) {
-        htmlDoc = document.implementation.createDocument(null, 'html', null)
-    }
-    var fragment = createDocumentFragmentByString(html)
-    try {
-        fragment = htmlDoc.adoptNode(fragment)
-    }
-    catch(e) {
-        fragment = htmlDoc.importNode(fragment, true)
-    }
-    htmlDoc.documentElement.appendChild(fragment)
-    return htmlDoc
-}
 
 function getElementsByXPath(xpath, node) {
     var nodesSnapshot = getXPathResult(xpath, node,
@@ -845,11 +799,6 @@ function addDefaultPrefix(xpath, prefix) {
     return xpath.replace(tokenPattern, replacer)
 }
 
-function createDocumentFragmentByString(str) {
-    var range = document.createRange()
-    range.setStartAfter(document.body)
-    return range.createContextualFragment(str)
-}
 
 function debug() {
     if ( typeof DEBUG != 'undefined' && DEBUG ) {
@@ -949,6 +898,7 @@ function strip_html_tag(str) {
     return chunks.join('')
 }
 
+// GM only
 function getPref(key, defaultValue) {
     var value = GM_getValue(key)
     return (typeof value == 'undefined') ? defaultValue : value
@@ -984,23 +934,6 @@ function gmCompatible() {
     uneval = function() {}
     fixResolvePath = function() {}
     resolvePath = function (path, base) { return path }
-
-    if (Extension.isChrome() || Extension.isSafari()) {
-        createHTMLDocumentByString = function(str) {
-            if (document.documentElement.nodeName != 'HTML') {
-                return new DOMParser().parseFromString(str, 'application/xhtml+xml')
-            }
-            // FIXME
-            var html = str.replace(/<script(?:[ \t\r\n][^>]*)?>[\S\s]*?<\/script[ \t\r\n]*>|<\/?(?:i?frame|html|script|object)(?:[ \t\r\n][^<>]*)?>/gi, ' ')
-            var htmlDoc = document.implementation.createHTMLDocument ?
-                document.implementation.createHTMLDocument('apfc') :
-                document.implementation.createDocument(null, 'html', null)
-            var range = document.createRange()
-            range.selectNodeContents(document.documentElement)
-            htmlDoc.documentElement.appendChild(range.createContextualFragment(html))
-            return htmlDoc
-        }
-    }
     return true
 }
 
@@ -1025,6 +958,60 @@ function loadWithIframe(url, callback, errback) {
     }
     iframe.onload = contentload
     iframe.onerror = errback
+}
+
+
+// obsolete
+function createHTMLDocumentByString(str) {
+    if (document.documentElement.nodeName != 'HTML') {
+        return new DOMParser().parseFromString(str, 'application/xhtml+xml')
+    }
+    var html = strip_html_tag(str)
+    var htmlDoc
+    try {
+        // We have to handle exceptions since Opera 9.6 throws
+        // a NOT_SUPPORTED_ERR exception for |document.cloneNode(false)|
+        // against the DOM 3 Core spec.
+        htmlDoc = document.cloneNode(false)
+        htmlDoc.appendChild(htmlDoc.importNode(document.documentElement, false))
+    }
+    catch(e) {
+        htmlDoc = document.implementation.createDocument(null, 'html', null)
+    }
+    var fragment = createDocumentFragmentByString(html)
+    try {
+        fragment = htmlDoc.adoptNode(fragment)
+    }
+    catch(e) {
+        fragment = htmlDoc.importNode(fragment, true)
+    }
+    htmlDoc.documentElement.appendChild(fragment)
+    return htmlDoc
+}
+
+/*
+    if (Extension.isChrome() || Extension.isSafari()) {
+        createHTMLDocumentByString = function(str) {
+            if (document.documentElement.nodeName != 'HTML') {
+                return new DOMParser().parseFromString(str, 'application/xhtml+xml')
+            }
+            // FIXME
+            var html = str.replace(/<script(?:[ \t\r\n][^>]*)?>[\S\s]*?<\/script[ \t\r\n]*>|<\/?(?:i?frame|html|script|object)(?:[ \t\r\n][^<>]*)?>/gi, ' ')
+            var htmlDoc = document.implementation.createHTMLDocument ?
+                document.implementation.createHTMLDocument('apfc') :
+                document.implementation.createDocument(null, 'html', null)
+            var range = document.createRange()
+            range.selectNodeContents(document.documentElement)
+            htmlDoc.documentElement.appendChild(range.createContextualFragment(html))
+            return htmlDoc
+        }
+    }
+*/
+
+function createDocumentFragmentByString(str) {
+    var range = document.createRange()
+    range.setStartAfter(document.body)
+    return range.createContextualFragment(str)
 }
 
 })()
