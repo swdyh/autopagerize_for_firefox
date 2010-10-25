@@ -26,7 +26,6 @@
 
 (function() {
 
-
 var URL = 'http://autopagerize.net/'
 var VERSION = '0.0.56'
 var DEBUG = false
@@ -37,13 +36,6 @@ var FORCE_TARGET_WINDOW = true // FIXME config
 var SITEINFO_IMPORT_URLS = [
     'http://wedata.net/databases/AutoPagerize/items.json',
 ]
-var COLOR = {
-    on: '#0f0',
-    off: '#ccc',
-    loading: '#0ff',
-    terminated: '#00f',
-    error: '#f0f'
-}
 var SITEINFO = [
     /* sample
     {
@@ -69,11 +61,7 @@ var MICROFORMAT = {
     pageElement:  '//*[contains(@class, "autopagerize_page_element")]',
 }
 
-if (window != window.parent) {
-    return
-}
-
-var AutoPager = function(info) {
+function AutoPager(info) {
     this.pageNum = 1
     this.info = info
     this.state = AUTO_START ? 'enable' : 'disable'
@@ -356,7 +344,7 @@ AutoPager.prototype.error = function() {
 AutoPager.documentFilters = []
 AutoPager.filters = []
 
-var launchAutoPager = function(list) {
+AutoPager.launchAutoPager = function(list) {
     if (list.length == 0) {
         return
     }
@@ -388,6 +376,10 @@ var launchAutoPager = function(list) {
             continue
         }
     }
+}
+
+if (window != window.parent) {
+    return
 }
 
 var linkFilter = function(doc, url) {
@@ -431,7 +423,7 @@ if (typeof(window.AutoPagerize) == 'undefined') {
     window.AutoPagerize.addDocumentFilter = function(f) {
         AutoPager.documentFilters.push(f)
     }
-    window.AutoPagerize.launchAutoPager = launchAutoPager
+    window.AutoPagerize.launchAutoPager = AutoPager.launchAutoPager
     var ev = document.createEvent('Event')
     ev.initEvent('GM_AutoPagerizeLoaded', true, false)
     document.dispatchEvent(ev)
@@ -444,9 +436,9 @@ extension.postMessage('settings', {}, function(res) {
     settings = res
     extension.postMessage('siteinfo', { url: location.href }, function(res) {
         if (!settings['exclude_patterns'] || !isExclude(settings['exclude_patterns'])) {
-            launchAutoPager(SITEINFO)
-            launchAutoPager([MICROFORMAT])
-            launchAutoPager(res)
+            AutoPager.launchAutoPager(SITEINFO)
+            AutoPager.launchAutoPager(res)
+            AutoPager.launchAutoPager([MICROFORMAT])
         }
     })
 })
@@ -523,7 +515,6 @@ function addDefaultPrefix(xpath, prefix) {
     }
     return xpath.replace(tokenPattern, replacer)
 }
-
 
 function debug() {
     if ( typeof DEBUG != 'undefined' && DEBUG ) {
