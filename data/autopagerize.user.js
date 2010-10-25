@@ -1,19 +1,9 @@
-// ==UserScript==
-// @name           AutoPagerize
-// @namespace      http://swdyh.yu.to/
-// @description    loading next page and inserting into current page.
-// @require        https://relucks-org.appspot.com/files/html-sanitizer-minified.js
-// @require        https://relucks-org.appspot.com/files/extension.js
-// @include        http://*
-// @include        https://*
-// @exclude        https://mail.google.com/*
-// @exclude        http://b.hatena.ne.jp/*
-// @exclude        http://www.facebook.com/plugins/like.php*
-// @exclude        http://api.tweetmeme.com/button.js*
-// ==/UserScript==
+// AutoPagerize
+// loading next page and inserting into current page.
+// http://autopagerize.net/
+
 //
-// auther:  swdyh http://d.hatena.ne.jp/swdyh/
-// version: 0.0.56 2010-10-22T05:26:39+09:00
+// It doesn't work in Greasemonkey any longer.
 //
 // this script based on
 // GoogleAutoPager(http://la.ma.la/blog/diary_200506231749.htm) and
@@ -26,11 +16,7 @@
 
 (function() {
 
-var URL = 'http://autopagerize.net/'
-var VERSION = '0.0.56'
 var DEBUG = false
-var AUTO_START = true
-var CACHE_EXPIRE = 24 * 60 * 60 * 1000
 var BASE_REMAIN_HEIGHT = 400
 var FORCE_TARGET_WINDOW = true // FIXME config
 var SITEINFO_IMPORT_URLS = [
@@ -64,7 +50,7 @@ var MICROFORMAT = {
 function AutoPager(info) {
     this.pageNum = 1
     this.info = info
-    this.state = AUTO_START ? 'enable' : 'disable'
+    this.state = 'enable'
     var self = this
     var url = this.getNextURL(info.nextLink, document, location.href)
 
@@ -657,60 +643,6 @@ function loadWithIframe(url, callback, errback) {
     }
     iframe.onload = contentload
     iframe.onerror = errback
-}
-
-
-// obsolete
-function createHTMLDocumentByString(str) {
-    if (document.documentElement.nodeName != 'HTML') {
-        return new DOMParser().parseFromString(str, 'application/xhtml+xml')
-    }
-    var html = strip_html_tag(str)
-    var htmlDoc
-    try {
-        // We have to handle exceptions since Opera 9.6 throws
-        // a NOT_SUPPORTED_ERR exception for |document.cloneNode(false)|
-        // against the DOM 3 Core spec.
-        htmlDoc = document.cloneNode(false)
-        htmlDoc.appendChild(htmlDoc.importNode(document.documentElement, false))
-    }
-    catch(e) {
-        htmlDoc = document.implementation.createDocument(null, 'html', null)
-    }
-    var fragment = createDocumentFragmentByString(html)
-    try {
-        fragment = htmlDoc.adoptNode(fragment)
-    }
-    catch(e) {
-        fragment = htmlDoc.importNode(fragment, true)
-    }
-    htmlDoc.documentElement.appendChild(fragment)
-    return htmlDoc
-}
-
-/*
-    if (Extension.isChrome() || Extension.isSafari()) {
-        createHTMLDocumentByString = function(str) {
-            if (document.documentElement.nodeName != 'HTML') {
-                return new DOMParser().parseFromString(str, 'application/xhtml+xml')
-            }
-            // FIXME
-            var html = str.replace(/<script(?:[ \t\r\n][^>]*)?>[\S\s]*?<\/script[ \t\r\n]*>|<\/?(?:i?frame|html|script|object)(?:[ \t\r\n][^<>]*)?>/gi, ' ')
-            var htmlDoc = document.implementation.createHTMLDocument ?
-                document.implementation.createHTMLDocument('apfc') :
-                document.implementation.createDocument(null, 'html', null)
-            var range = document.createRange()
-            range.selectNodeContents(document.documentElement)
-            htmlDoc.documentElement.appendChild(range.createContextualFragment(html))
-            return htmlDoc
-        }
-    }
-*/
-
-function createDocumentFragmentByString(str) {
-    var range = document.createRange()
-    range.setStartAfter(document.body)
-    return range.createContextualFragment(str)
 }
 
 })()
