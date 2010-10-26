@@ -12,11 +12,13 @@ task :_xpi do
   sh "cfx xpi -u '#{rdf_url}' -l '#{xpi_url}'"
 end
 
-task :dep => :xpi do
+desc 'deploy'
+task :deploy => :update do
   sh "cp autopagerize.xpi autopagerize.update.rdf #{dir} && cd #{dir}/.. && sh ./script/update"
 end
 
-task :xpi => [:clean, :_xpi] do
+desc 'update xpi'
+task :update => [:clean, :_xpi] do
   v = JSON.parse(IO.read('package.json'))['version']
   # inject_meta
   sh "cp autopagerize.xpi packages_/autopagerize_#{v}.xpi"
@@ -38,3 +40,4 @@ EOS
   sh 'cd tmp && zip -qr -9 autopagerize.xpi * && mv autopagerize.xpi ../ && cd ../'
   sh 'rm -rf tmp'
 end
+
