@@ -9,7 +9,7 @@ rdf_url = 'https://relucks-org.appspot.com/autopagerize/autopagerize.update.rdf'
 dir = '/Users/youhei/dev/appengine/relucks-org/files'
 
 task :_xpi do
-  sh "cfx xpi -u '#{rdf_url}' -l '#{xpi_url}'"
+  sh "cfx xpi --update-link='#{rdf_url}' --update-url='#{xpi_url}'"
 end
 
 desc 'deploy'
