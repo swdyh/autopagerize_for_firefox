@@ -2,7 +2,7 @@
     "id": "jid0-tKjnEA5X3eBoP5HnqjBYQ4U3AcM",
     "name": "autopagerize",
     "fullName": "AutoPagerize",
-    "version": "0.6.6",
+    "version": "0.7.0",
     "description": "A browser Extension for auto loading paginated web pages",
     "url": "http://autopagerize.net/",
     "author": "swdyh"
