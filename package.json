@@ -4,6 +4,7 @@
     "fullName": "AutoPagerize",
     "version": "0.7.0",
     "description": "A browser Extension for auto loading paginated web pages",
+    "icon": "data/icons/icon_032.png",
     "url": "http://autopagerize.net/",
     "author": "swdyh"
 }
