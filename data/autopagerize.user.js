@@ -132,9 +132,13 @@ AutoPager.prototype.initMessageBar = function() {
     frame.width = '100%'
     frame.scrolling = 'no'
     this.messageFrame = frame
-    var u = settings['extension_path'] ?
-        settings['extension_path'] + 'loading.html' :
-        'http://autopagerize.net/files/loading.html'
+    var u = 'http://autopagerize.net/files/loading.html'
+    if (settings['extension_path']) {
+        u = settings['extension_path'] + 'loading.html'
+    }
+    else if (settings['loading_html']) {
+        u = settings['loading_html']
+    }
     this.messageFrame.src = u
     document.body.appendChild(frame)
 }
@@ -337,9 +341,13 @@ AutoPager.prototype.error = function() {
     window.removeEventListener('scroll', this.scroll, false)
     if (this.messageFrame) {
         var mf = this.messageFrame
-        var u = settings['extension_path'] ?
-            settings['extension_path'] + 'error.html' :
-            'http://autopagerize.net/files/error.html'
+        var u = 'http://autopagerize.net/files/error.html'
+        if (settings['extension_path']) {
+            u = settings['extension_path'] + 'error.html'
+        }
+        else if (settings['error_html']) {
+            u = settings['error_html']
+        }
         mf.src = u
         mf.style.display = 'block'
         setTimeout(function() {
