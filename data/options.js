@@ -5,14 +5,14 @@ form.addEventListener('submit', function(event) {
     var d = {}
     d['exclude_patterns'] = form_ep.value
     d['display_message_bar'] = !!form_dm.checked
-    postMessage({ name: 'settingsUpdate', data: d })
+    self.postMessage({ name: 'settingsUpdate', data: d })
     event.preventDefault()
 }, false)
 
 var us = document.getElementById('update_siteinfo')
 us.addEventListener('click', updateCacheInfo, false)
 
-onMessage = function(res) {
+self.on('message', function(res) {
     // console.log('options.js:onMessage', JSON.stringify(res))
     if (res.name == 'settings') {
         var settings = res.data
@@ -36,17 +36,17 @@ onMessage = function(res) {
         }
     }
     else if (res.name == 'onshow') {
-        postMessage({ name: 'settings' })
+        self.postMessage({ name: 'settings' })
         updateCacheInfoInfo()
     }
-}
+})
 
 function updateCacheInfoInfo() {
-    postMessage({ name: 'siteinfo_meta' })
+    self.postMessage({ name: 'siteinfo_meta' })
 }
 
 function updateCacheInfo() {
     us.disabled = true
     us.value = 'Updateing...'
-    postMessage({ name: 'update_siteinfo' })
+    self.postMessage({ name: 'update_siteinfo' })
 }
