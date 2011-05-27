@@ -649,7 +649,7 @@ function isExclude(patterns) {
         else {
             reg = wildcard2regep(eps[i])
         }
-        if (location.href.match(reg)) {
+        if (eps[i].match(/[^\s+]/) && location.href.match(reg)) {
             return true
         }
     }
