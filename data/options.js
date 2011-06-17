@@ -1,10 +1,12 @@
 var form = document.getElementById('settings_form')
 var form_ep = document.getElementById('form_ep')
 var form_dm = document.getElementById('form_dm')
+var form_disable = document.getElementById('form_disable')
 form.addEventListener('submit', function(event) {
     var d = {}
     d['exclude_patterns'] = form_ep.value
     d['display_message_bar'] = !!form_dm.checked
+    d['disable'] = !!form_disable.checked
     self.postMessage({ name: 'settingsUpdate', data: d })
     event.preventDefault()
 }, false)
@@ -18,6 +20,7 @@ self.on('message', function(res) {
         var settings = res.data
         form_ep.value = settings['exclude_patterns'] || ''
         form_dm.checked = settings['display_message_bar'] === false ? false : 'checked'
+        form_disable.checked = settings['disable'] ? 'checked' : null
     }
     else if (res.name == 'siteinfo_meta') {
         if (res.len) {
