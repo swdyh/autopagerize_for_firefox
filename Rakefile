@@ -17,6 +17,7 @@ task :deploy => :update do
   sh "cp autopagerize.update.rdf #{dir}"
   sh "cp autopagerize.update.rdf #{dir}/update.rdf "
   sh "cp autopagerize.update.rdf #{dir}/autopagerize.xpi "
+  sh "cd #{dir}/.. && sh ./script/update"
 end
 
 desc 'update xpi'
