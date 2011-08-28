@@ -14,6 +14,7 @@
 // http://www.gnu.org/copyleft/gpl.html
 //
 (function() {
+
 var DEBUG = false
 var BASE_REMAIN_HEIGHT = 400
 var MIN_REQUEST_INTERVAL = 2000
