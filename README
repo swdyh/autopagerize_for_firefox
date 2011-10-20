@@ -1,7 +1,7 @@
-AutoPagerize Firefox Extension with JetpackSDK
+AutoPagerize Firefox Extension with Add-on SDK
 
 # Require
- jetpack-sdk 0.8
+ Add-on SDK 1.2.1
 
 # Build
  cfx xpi
