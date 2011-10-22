@@ -580,7 +580,19 @@ function addDefaultPrefix(xpath, prefix) {
 
 function debug() {
     if ( typeof DEBUG != 'undefined' && DEBUG ) {
-        console.log.apply(console, arguments)
+        if (typeof console.log.apply == 'function') {
+            console.log.apply(console, arguments)
+        }
+        // A workaround for the bug 'console.log.apply is not a function'
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=692125
+        else {
+            var params = []
+            for (var i = 0; i < arguments.length; i++) {
+                params.push('_' + i)
+            }
+            params = params.join(',')
+            Function(params, 'console.log(' + params + ')').apply(null, arguments)
+        }
     }
 }
 
