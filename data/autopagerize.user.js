@@ -197,6 +197,10 @@ AutoPager.prototype.request = function() {
     if (!this.requestURL || this.lastRequestURL == this.requestURL) {
         return
     }
+    if (!document.contains(this.insertPoint)) {
+        AutoPager.rebootAutoPager()
+        return
+    }
     var self = this
     var now = new Date()
     if (this.reqTime && now - this.reqTime < MIN_REQUEST_INTERVAL) {
@@ -425,6 +429,19 @@ AutoPager.launchAutoPager = function(list) {
             continue
         }
     }
+}
+
+AutoPager.rebootAutoPager = function() {
+    if (!ap) {
+        return
+    }
+    window.removeEventListener('scroll', ap.scroll, false)
+    if (ap.messageFrame) {
+        var mf = ap.messageFrame
+        mf.parentNode.removeChild(mf)
+    }
+    var info = ap.info
+    ap = new AutoPager(info)
 }
 
 if (window.location.href != window.parent.location.href) {
