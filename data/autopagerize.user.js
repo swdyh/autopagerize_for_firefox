@@ -16,6 +16,8 @@
 //
 // A portion of createHTMLDocumentByString() function is:
 // Copyright (c) 2009 Hatena Co., Ltd
+// and
+// Copyright (c) 2009 os0x
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -782,6 +784,7 @@ function createHTMLDocumentByString(str) {
         fragment = htmlDoc.importNode(fragment, true)
     }
     // via https://github.com/hatena/hatena-bookmark-xul/blob/master/chrome/content/common/05-HTMLDocumentCreator.js
+    //     https://code.google.com/p/autopatchwork/source/browse/AutoPatchWork/includes/AutoPatchWork.js
     var head = htmlDoc.createElement('head')
     var headChildNames = {
         title: true,
@@ -789,9 +792,7 @@ function createHTMLDocumentByString(str) {
         link: true,
         script: true,
         style: true,
-        object: true,
-        base: true,
-        isindex: true
+        base: true
     }
     var child
     while ((child = fragment.firstChild)) {
