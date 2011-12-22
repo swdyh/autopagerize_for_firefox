@@ -13,6 +13,30 @@
 // Released under the GPL license
 // http://www.gnu.org/copyleft/gpl.html
 //
+//
+// A portion of createHTMLDocumentByString() function is:
+// Copyright (c) 2009 Hatena Co., Ltd
+// and
+// Copyright (c) 2009 os0x
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
 (function() {
 
 var DEBUG = false
@@ -759,7 +783,29 @@ function createHTMLDocumentByString(str) {
     catch(e) {
         fragment = htmlDoc.importNode(fragment, true)
     }
-    htmlDoc.documentElement.appendChild(fragment)
+    // via https://github.com/hatena/hatena-bookmark-xul/blob/master/chrome/content/common/05-HTMLDocumentCreator.js
+    //     https://code.google.com/p/autopatchwork/source/browse/AutoPatchWork/includes/AutoPatchWork.js
+    var head = htmlDoc.createElement('head')
+    var headChildNames = {
+        title: true,
+        meta: true,
+        link: true,
+        script: true,
+        style: true,
+        base: true
+    }
+    var child
+    while ((child = fragment.firstChild)) {
+        if ((child.nodeType == child.ELEMENT_NODE && !(child.nodeName.toLowerCase() in headChildNames)) ||
+            (child.nodeType == child.TEXT_NODE && /\S/.test(child.nodeValue))) {
+            break
+        }
+        head.appendChild(child)
+    }
+    var body = htmlDoc.createElement('body')
+    body.appendChild(fragment)
+    htmlDoc.documentElement.appendChild(head)
+    htmlDoc.documentElement.appendChild(body)
     return htmlDoc
 }
 
