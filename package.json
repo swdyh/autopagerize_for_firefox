@@ -6,5 +6,11 @@
     "description": "A browser Extension for auto loading paginated web pages",
     "icon": "data/icons/icon_032.png",
     "url": "http://autopagerize.net/",
-    "author": "swdyh"
+    "author": "swdyh",
+    "preferences": [{
+        "name": "openPref",
+        "title": "",
+        "label": "Open AutoPagerize preferences",
+        "type": "control"
+    }]
 }
