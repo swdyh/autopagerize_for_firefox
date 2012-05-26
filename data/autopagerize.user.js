@@ -427,8 +427,15 @@ AutoPager.launchAutoPager = function(list) {
     }
 }
 
-if (window.location.href != window.parent.location.href) {
-     return
+// firefox about:addon(http://localhost/extensions-dummy/discoveryURL)
+// Error: Permission denied to access property 'href'
+try {
+    if (window.location.href != window.parent.location.href) {
+        return
+    }
+}
+catch(e) {
+    return
 }
 
 var linkFilter = function(doc, url) {
