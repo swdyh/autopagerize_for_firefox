@@ -465,7 +465,22 @@ var linkFilter = function(doc, url) {
         })
     }
 }
-AutoPager.documentFilters.push(linkFilter)
+// http://www.youtube.com/results?search_query=a
+var youtubeSearchShowThumbnalFilter = function(doc, url) {
+    if (/^https?:\/\/www.youtube.com\/results.+/.test(url)) {
+        Array.prototype.slice.call(
+            doc.querySelectorAll('img[data-thumb]')
+        ).forEach(function(i) {
+            if ((/\.gif$/).test(i.src) && i.dataset.thumb) {
+                i.src = i.dataset.thumb
+            }
+        })
+    }
+}
+AutoPager.documentFilters.push(
+    linkFilter,
+    youtubeSearchShowThumbnalFilter
+)
 
 if (Extension.isFirefox()) {
     fixResolvePath()
