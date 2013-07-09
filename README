@@ -1,7 +1,7 @@
 AutoPagerize Firefox Extension with Add-on SDK
 
 # Require
- Add-on SDK 1.3
+ Add-on SDK 1.4
 
 # Build
  cfx xpi
