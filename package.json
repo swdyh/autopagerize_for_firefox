@@ -8,6 +8,7 @@
     "url": "http://autopagerize.net/",
     "homepage": "http://autopagerize.net/",
     "author": "swdyh",
+    "permissions" : {"private-browsing": true},
     "preferences": [{
         "name": "openPref",
         "title": "",
