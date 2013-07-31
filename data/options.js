@@ -24,11 +24,11 @@ self.on('message', function(res) {
     }
     else if (res.name == 'siteinfo_meta') {
         if (res.len) {
-            document.getElementById('siteinfo_size').innerHTML = res.len
+            document.getElementById('siteinfo_size').textContent = res.len
         }
         if (res.updated_at) {
             var d = new Date(res.updated_at)
-            document.getElementById('siteinfo_updated_at').innerHTML = d
+            document.getElementById('siteinfo_updated_at').textContent = d
         }
     }
     else if (res.name == 'update_siteinfo') {
