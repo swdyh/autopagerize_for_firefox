@@ -1,10 +1,11 @@
-AutoPagerize Firefox Extension with Add-on SDK
+# AutoPagerize Firefox Extension with Add-on SDK
 
-# Require
- Add-on SDK 1.14
+## Require
 
-# Build
- cfx xpi
+Add-on SDK 1.14
 
-# Install
- https://relucks-org.appspot.com/autopagerize/autopagerize.xpi
+## Build
+
+    cfx xpi
+
+http://autopagerize.net/
