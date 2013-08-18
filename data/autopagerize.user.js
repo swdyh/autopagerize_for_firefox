@@ -573,13 +573,8 @@ function addDefaultPrefix(xpath, prefix) {
 }
 
 function debug() {
-    if ( typeof DEBUG != 'undefined' && DEBUG ) {
-        if (console.log.apply) {
-            console.log.apply(console, arguments)
-        }
-        else {
-            Function.prototype.apply.apply(console.log, [console, arguments])
-        }
+    if (typeof DEBUG != 'undefined' && DEBUG && console.log.apply) {
+        console.log.apply(console, arguments)
     }
 }
 
