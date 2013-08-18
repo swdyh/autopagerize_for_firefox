@@ -13,6 +13,7 @@
 // Released under the GPL license
 // http://www.gnu.org/copyleft/gpl.html
 //
+
 (function() {
 
 var DEBUG = false
@@ -427,12 +428,17 @@ AutoPager.launchAutoPager = function(list) {
 
 // firefox about:addon(http://localhost/extensions-dummy/discoveryURL)
 // Error: Permission denied to access property 'href'
-try {
-    if (window.location.href != window.parent.location.href) {
+if (Extension.isFirefox()) {
+    try {
+        if (window.location.href != window.parent.location.href) {
+            return
+        }
+    }
+    catch(e) {
         return
     }
 }
-catch(e) {
+else if (window != window.parent) {
     return
 }
 
@@ -490,7 +496,6 @@ if ((/^https?:\/\/www.youtube.com\/results.+/).test(location.href)) {
     }
     AutoPager.filters.push(youtubeSearchShowThumbnalFilter)
 }
-
 
 // utility functions.
 function getElementsByXPath(xpath, node) {
